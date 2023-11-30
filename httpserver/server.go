@@ -15,6 +15,12 @@ import (
 	"github.com/trivago/go-bootstrap/logging"
 )
 
+// AlwaysOk is a gin handler that always returns a 200 OK.
+func AlwaysOk(c *gin.Context) {
+	c.Status(http.StatusOK)
+	c.Writer.WriteHeaderNow()
+}
+
 // New creates a new HTTP server with the given health and ready handlers.
 // Pass an initRoutes function to configure routes on this server.
 func New(port int, health, ready gin.HandlerFunc, initRoutes func(router *gin.Engine)) *http.Server {
