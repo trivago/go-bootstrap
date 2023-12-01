@@ -53,7 +53,7 @@ func AlwaysOk(c *gin.Context) {
 
 // New creates a new HTTP server with the given health and ready handlers.
 // Pass an initRoutes function to configure routes on this server.
-func New(port int, health, ready gin.HandlerFunc, initRoutes func(router *gin.Engine)) *http.Server {
+func New(port int, health, ready gin.HandlerFunc, initRoutes func(router *gin.Engine)) (*http.Server, error) {
 	return NewWithConfig(Config{
 		Port:       port,
 		Health:     health,
@@ -63,8 +63,9 @@ func New(port int, health, ready gin.HandlerFunc, initRoutes func(router *gin.En
 }
 
 // NewWithConfig allows a more fine-grained configuration of the HTTP server.
-// Use it to e.g. create a server with TLS enabled.
-func NewWithConfig(config Config) *http.Server {
+// Use it to e.g. create a server with TLS enabled. Returns nil if the server
+// could not be created.
+func NewWithConfig(config Config) (*http.Server, error) {
 	router := gin.New()
 	router.Use(newZeroLogLogger([]string{"/healthz", "/readyz"}), gin.Recovery())
 
@@ -100,9 +101,15 @@ func NewWithConfig(config Config) *http.Server {
 			reloadDuration = config.CertCacheDuration
 		}
 
+		log.Debug().Msgf("Using TLS certificate %s and key %s", config.PathTLSCert, config.PathTLSKey)
+
 		// Create a certificate handler that is reloading the certificate from disk.
 		// This is required to support certificate rotation.
 		cert := newFileBasedCert(config.PathTLSCert, config.PathTLSKey, reloadDuration)
+		if _, err := cert.GetCertificate(); err != nil {
+			return nil, err
+		}
+
 		tlsConfig = &tls.Config{
 			GetCertificate: func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 				return cert.GetCertificate()
@@ -115,7 +122,7 @@ func NewWithConfig(config Config) *http.Server {
 		Handler:   router,
 		ErrorLog:  golog.New(logging.ErrorLogWriter{}, "", 0),
 		TLSConfig: tlsConfig,
-	}
+	}, nil
 }
 
 // Listen starts the given HTTP server and blocks until a stop signal like SIGINT or SIGTERM is received.
