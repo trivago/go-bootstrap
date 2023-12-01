@@ -112,7 +112,16 @@ func NewWithConfig(config Config) (*http.Server, error) {
 
 		tlsConfig = &tls.Config{
 			GetCertificate: func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
-				return cert.GetCertificate()
+				cert, err := cert.GetCertificate()
+				if err != nil {
+					return nil, err
+				}
+				if err := hello.SupportsCertificate(cert); err != nil {
+					// This error will be hidden by go's standard library, so we log it here
+					log.Error().Err(err).Msg("Certificate does not match client requirements")
+					return nil, err
+				}
+				return cert, nil
 			},
 		}
 	}
@@ -135,8 +144,16 @@ func Listen(srv *http.Server, signalHandler func(os.Signal)) {
 	go func() {
 		log.Info().Msg("Starting listener")
 
+		var err error
+
 		// This call is blocking
-		if err := srv.ListenAndServe(); err != nil {
+		if srv.TLSConfig != nil {
+			err = srv.ListenAndServeTLS("", "")
+		} else {
+			err = srv.ListenAndServe()
+		}
+
+		if err != nil {
 			if err == http.ErrServerClosed {
 				log.Warn().Msg("HTTP server was instructed to close")
 			} else {
