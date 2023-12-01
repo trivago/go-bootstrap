@@ -6,8 +6,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+}
 
 func TestTLS(t *testing.T) {
 	srv, err := NewWithConfig(Config{
