@@ -23,10 +23,11 @@ type fileBasedCert struct {
 // certificate from disk if certCacheDuration has passed.
 func newFileBasedCert(certFile, keyFile string, certCacheDuration time.Duration) *fileBasedCert {
 	return &fileBasedCert{
-		certFile:    certFile,
-		keyFile:     keyFile,
-		lastRefresh: time.Now(),
-		mutex:       &sync.Mutex{},
+		certFile:          certFile,
+		keyFile:           keyFile,
+		lastRefresh:       time.Now(),
+		certCacheDuration: certCacheDuration,
+		mutex:             &sync.Mutex{},
 	}
 }
 
@@ -37,7 +38,7 @@ func (c *fileBasedCert) GetCertificate() (*tls.Certificate, error) {
 	defer c.mutex.Unlock()
 
 	// Make sure we force a refresh when the certificate has expired
-	if c.cert != nil && time.Now().After(c.cert.Leaf.NotAfter) {
+	if c.cert != nil && c.cert.Leaf != nil && time.Now().After(c.cert.Leaf.NotAfter) {
 		log.Warn().Msg("TLS certificate has expired, reloading.")
 		c.cert = nil
 	}
