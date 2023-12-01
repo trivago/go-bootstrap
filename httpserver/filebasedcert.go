@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"crypto/tls"
+	"sync"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -10,6 +11,7 @@ import (
 // fileBasedCert is a certificate handler that is reloading the certificate from
 // disk if certCacheDuration has passed.
 type fileBasedCert struct {
+	mutex             *sync.Mutex
 	certFile          string
 	keyFile           string
 	lastRefresh       time.Time
@@ -24,12 +26,16 @@ func newFileBasedCert(certFile, keyFile string, certCacheDuration time.Duration)
 		certFile:    certFile,
 		keyFile:     keyFile,
 		lastRefresh: time.Now(),
+		mutex:       &sync.Mutex{},
 	}
 }
 
 // GetCertificate returns a certificate from the cache, or loads it from disk if
 // it is not cached yet or certCacheDuration has passed.
 func (c *fileBasedCert) GetCertificate() (*tls.Certificate, error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	// Make sure we force a refresh when the certificate has expired
 	if c.cert != nil && time.Now().After(c.cert.Leaf.NotAfter) {
 		log.Warn().Msg("TLS certificate has expired, reloading.")
