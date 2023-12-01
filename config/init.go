@@ -12,7 +12,6 @@ import (
 	"go.uber.org/automaxprocs/maxprocs"
 
 	"github.com/trivago/go-bootstrap/logging"
-	_ "github.com/trivago/go-bootstrap/logging"
 )
 
 const (
