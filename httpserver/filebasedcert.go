@@ -34,18 +34,20 @@ func newFileBasedCert(certFile, keyFile string, certCacheDuration time.Duration)
 // GetCertificate returns a certificate from the cache, or loads it from disk if
 // it is not cached yet or certCacheDuration has passed.
 func (c *fileBasedCert) GetCertificate() (*tls.Certificate, error) {
+	now := time.Now()
+
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
 	// Make sure we force a refresh when the certificate has expired
-	if c.cert != nil && c.cert.Leaf != nil && time.Now().After(c.cert.Leaf.NotAfter) {
+	if c.cert != nil && c.cert.Leaf != nil && now.After(c.cert.Leaf.NotAfter) {
 		log.Warn().Msg("TLS certificate has expired, reloading.")
 		c.cert = nil
 	}
 
 	// Load the certificate from disk if it is not cached yet or certCacheDuration
 	// has passed.
-	if c.cert == nil || time.Since(c.lastRefresh) > c.certCacheDuration {
+	if c.cert == nil || now.Sub(c.lastRefresh) > c.certCacheDuration {
 		if c.cert != nil {
 			log.Info().Msg("TLS cache duration has expired, reloading certificate from disk.")
 		}
