@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.1](https://github.com/trivago/go-bootstrap/compare/v1.2.0...v1.2.1) (2023-12-01)
+
+
+### Bug Fixes
+
+* crash on 2nd call to GetCertificate ([a589200](https://github.com/trivago/go-bootstrap/commit/a58920038421ce278f45abc59dc0b4d1bb49f725))
+* verify client cert before returning it ([9879a80](https://github.com/trivago/go-bootstrap/commit/9879a805635c3fb06376a8e33365521231ee81e0))
+
+
+### Miscellaneous
+
+* add localhost certificate for testing ([335d504](https://github.com/trivago/go-bootstrap/commit/335d504c204a6ee16f57b34e2072c1e4787e52b2))
+
 ## [1.2.0](https://github.com/trivago/go-bootstrap/compare/v1.1.1...v1.2.0) (2023-12-01)
 
 
