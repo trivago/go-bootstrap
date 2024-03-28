@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.2](https://github.com/trivago/go-bootstrap/compare/v1.2.1...v1.2.2) (2024-03-28)
+
+
+### Miscellaneous
+
+* **deps:** bump golang.org/x/crypto from 0.16.0 to 0.17.0 ([#6](https://github.com/trivago/go-bootstrap/issues/6)) ([6939604](https://github.com/trivago/go-bootstrap/commit/6939604851f70564e7927d7f8442218869e66ce6))
+* **deps:** bump google.golang.org/protobuf from 1.31.0 to 1.33.0 ([#7](https://github.com/trivago/go-bootstrap/issues/7)) ([ddb331a](https://github.com/trivago/go-bootstrap/commit/ddb331ae5637b99a7c14f9133aa949989767e68f))
+
 ## [1.2.1](https://github.com/trivago/go-bootstrap/compare/v1.2.0...v1.2.1) (2023-12-01)
 
 
