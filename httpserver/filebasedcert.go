@@ -66,6 +66,10 @@ func (c *fileBasedCert) GetCertificate() (*tls.Certificate, error) {
 			return nil, err
 		}
 
+		if cert.Leaf != nil && now.After(cert.Leaf.NotAfter) {
+			log.Error().Msg("Reloaded TLS certificate has already expired.")
+		}
+
 		c.cert = &cert
 		c.lastRefresh = time.Now()
 	}
