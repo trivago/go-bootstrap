@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"crypto/tls"
+	"os"
 	"sync"
 	"time"
 
@@ -45,15 +46,28 @@ func (c *fileBasedCert) GetCertificate() (*tls.Certificate, error) {
 		c.cert = nil
 	}
 
+	if c.cert != nil {
+		// Check if the certificate file has been changed by comparing the last
+		// modification time with the time we last refreshed the certificate.
+		if fileInfo, err := os.Stat(c.certFile); err == nil && fileInfo.ModTime().After(c.lastRefresh) {
+			log.Warn().Msg("TLS certificate file has been changed, reloading.")
+			c.cert = nil
+		}
+	}
+
 	// Load the certificate from disk if it is not cached yet or certCacheDuration
 	// has passed.
 	if c.cert == nil || now.Sub(c.lastRefresh) > c.certCacheDuration {
 		if c.cert != nil {
-			log.Info().Msg("TLS cache duration has expired, reloading certificate from disk.")
+			log.Warn().Msg("TLS cache duration has expired, reloading certificate from disk.")
 		}
 		cert, err := tls.LoadX509KeyPair(c.certFile, c.keyFile)
 		if err != nil {
 			return nil, err
+		}
+
+		if cert.Leaf != nil && now.After(cert.Leaf.NotAfter) {
+			log.Error().Msg("Reloaded TLS certificate has already expired.")
 		}
 
 		c.cert = &cert
