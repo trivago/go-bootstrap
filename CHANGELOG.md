@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.3](https://github.com/trivago/go-bootstrap/compare/v1.2.2...v1.2.3) (2025-01-08)
+
+
+### Bug Fixes
+
+* reload certificate when file has changed ([0b8572e](https://github.com/trivago/go-bootstrap/commit/0b8572e8840d4955ef5315cb8010f5ae30d0ea49))
+
+
+### Miscellaneous
+
+* add nix lock file ([79f3ac4](https://github.com/trivago/go-bootstrap/commit/79f3ac455d2d6da67f4aa9dbd9e4bb178755a0e8))
+* add pre-commit hooks ([b818237](https://github.com/trivago/go-bootstrap/commit/b818237fc25e3e680e78002d30e16c5970686d8a))
+* **deps:** bump golang.org/x/net from 0.19.0 to 0.23.0 ([#9](https://github.com/trivago/go-bootstrap/issues/9)) ([0e1dc2f](https://github.com/trivago/go-bootstrap/commit/0e1dc2f4020ca70fdac81d3b104f615fd32811b3))
+
 ## [1.2.2](https://github.com/trivago/go-bootstrap/compare/v1.2.1...v1.2.2) (2024-03-28)
 
 
