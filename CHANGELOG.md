@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.2.4](https://github.com/trivago/go-bootstrap/compare/v1.2.3...v1.2.4) (2025-01-27)
+
+
+### Bug Fixes
+
+* Make certificate reload handling more robust ([a100cf8](https://github.com/trivago/go-bootstrap/commit/a100cf8623e865f99c3a884519e84b826eab181f))
+* **security:** calling sprintf on an external string variable as format ([a902997](https://github.com/trivago/go-bootstrap/commit/a902997f28f48b002619cf49ed7760ab8110e5a0))
+* SIGKILL cannot be trapped ([f1bb5a5](https://github.com/trivago/go-bootstrap/commit/f1bb5a52dd03371a3b421f21b1ab810e5bf6f32a))
+
+
+### Miscellaneous
+
+* add renovate.json ([84b60b5](https://github.com/trivago/go-bootstrap/commit/84b60b5f139ca7859977d3351000f6b4f568db1d))
+* update dependencies ([3e0b886](https://github.com/trivago/go-bootstrap/commit/3e0b886cdefa5b7d6e65b9c084b207accdc6ea4e))
+
 ## [1.2.3](https://github.com/trivago/go-bootstrap/compare/v1.2.2...v1.2.3) (2025-01-08)
 
 
