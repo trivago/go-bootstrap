@@ -54,7 +54,7 @@ func newZeroLogLogger(ignorePaths []string) gin.HandlerFunc {
 
 			switch {
 			case len(e.ErrorMessage) > 0:
-				event = log.Warn().Err(fmt.Errorf(e.ErrorMessage))
+				event = log.Warn().Err(fmt.Errorf("%s", e.ErrorMessage))
 			case e.StatusCode >= 500:
 				event = log.Warn()
 			default:
