@@ -138,7 +138,7 @@ func NewWithConfig(config Config) (*http.Server, error) {
 // Use the signalHandler if you need to react on any of these signals.
 func Listen(srv *http.Server, signalHandler func(os.Signal)) {
 	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGQUIT)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	// Launch server async, as ListenAndServeTLS is blocking.
 	go func() {
