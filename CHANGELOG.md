@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/trivago/go-bootstrap/compare/v1.2.4...v1.3.0) (2025-06-18)
+
+
+### Features
+
+* allow defining custom path that should be excluded from access logs ([e7905f8](https://github.com/trivago/go-bootstrap/commit/e7905f878a0d86d1be575d0fa3518f9c80a158ee))
+
+
+### Bug Fixes
+
+* update dependencies ([aad6f1d](https://github.com/trivago/go-bootstrap/commit/aad6f1dde60adc51cafe2b9501512cf774420c27))
+
 ## [1.2.4](https://github.com/trivago/go-bootstrap/compare/v1.2.3...v1.2.4) (2025-01-27)
 
 
