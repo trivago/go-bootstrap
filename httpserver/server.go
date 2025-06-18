@@ -28,6 +28,11 @@ type Config struct {
 	// Ready defines the handler for the /readyz endpoint.
 	Ready gin.HandlerFunc
 
+	// DisabledAccessLogFor defines a list of paths for which the access log
+	// will not be written. The path must be a full match to be disabled.
+	// This is set to []string{"/healthz", "/readyz"} when using New().
+	DisableAccessLogFor []string
+
 	// InitRoutes defines a function that will be called to configure routes on
 	// this server. Use it to define the handler for your routes.
 	InitRoutes func(router *gin.Engine)
@@ -55,10 +60,11 @@ func AlwaysOk(c *gin.Context) {
 // Pass an initRoutes function to configure routes on this server.
 func New(port int, health, ready gin.HandlerFunc, initRoutes func(router *gin.Engine)) (*http.Server, error) {
 	return NewWithConfig(Config{
-		Port:       port,
-		Health:     health,
-		Ready:      ready,
-		InitRoutes: initRoutes,
+		Port:                port,
+		Health:              health,
+		Ready:               ready,
+		InitRoutes:          initRoutes,
+		DisableAccessLogFor: []string{"/healthz", "/readyz"},
 	})
 }
 
@@ -67,7 +73,7 @@ func New(port int, health, ready gin.HandlerFunc, initRoutes func(router *gin.En
 // could not be created.
 func NewWithConfig(config Config) (*http.Server, error) {
 	router := gin.New()
-	router.Use(newZeroLogLogger([]string{"/healthz", "/readyz"}), gin.Recovery())
+	router.Use(newZeroLogLogger(config.DisableAccessLogFor), gin.Recovery())
 
 	// Setup routes
 	if config.Health == nil {
