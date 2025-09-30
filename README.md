@@ -2,7 +2,45 @@
 
 A golang module to reduce common boilerplate code.
 
-## Minimal usage
+This module is shared between many golang tools in trivago and is very
+opinionated on the modules used in these tools.
+More precisely it expect tools to:
+
+- Use [zerolog](https://github.com/rs/zerolog) for logging
+- Be compatible to Google Cloud logs by providing [commonly used fields](https://cloud.google.com/logging/docs/structured-logging#structured_logging_special_fields)
+- Use [Gin](https://github.com/gin-gonic/gin) for serving HTTP
+- Use [viper](https://github.com/spf13/viper) for configuration
+
+## License
+
+All files in the repository are subject to the [Apache 2.0 License](LICENSE)
+
+## Builds and Releases
+
+All commits to the main branch need to use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
+Releases will be generated automatically from these commits using [Release Please](https://github.com/googleapis/release-please).
+
+All required tools can be installed locally via [nix](https://nixos.org/)
+and are loaded on demand via [direnv](https://direnv.net/).
+
+On MacOS you can install nix via the installer from [determinate systems](https://determinate.systems/).
+
+```shell
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+```
+
+We provided a [just file](https://github.com/casey/just) to generate the required `.envrc` file.
+Run `just init-nix` to get started, or inspect the [justfile](justfile) to create it yourself.
+
+After you have set up your environment, run unittests via `just test` or
+
+```shell
+go test ./...
+```
+
+## Examples
+
+### Minimal usage
 
 This allows reading configuration flags via `viper`, sets up `zerolog` in a google cloud logging friendly way and makes
 the workload CGroup aware.
@@ -11,7 +49,7 @@ the workload CGroup aware.
 package main
 
 import (
-  "trivago.com/bootstrap/config"
+  "github.com/trivago/go-bootstrap/config"
 )
 
 func main() {
@@ -19,7 +57,7 @@ func main() {
 }
 ```
 
-## HTTP server
+### HTTP server
 
 This extends the minimal example to let the workload serve HTTP.
 
@@ -27,9 +65,9 @@ This extends the minimal example to let the workload serve HTTP.
 package main
 
 import (
-  "trivago.com/bootstrap/config"
-  "trivago.com/bootstrap/httpserver"
-	"github.com/spf13/viper"
+  "github.com/trivago/go-bootstrap/config"
+  "github.com/trivago/go-bootstrap/httpserver"
+  "github.com/spf13/viper"
 )
 
 func main() {
@@ -43,19 +81,19 @@ func main() {
 }
 ```
 
-## HTTPs server
+### HTTPs server
 
 This example requires valid TLS certificates to be present as files.
-If you use the [app chart](https://github.com/trivago/gcp-shared-artifacts/tree/master/kubernetes/helm/charts/app),
-the required certificate files will be generated for you and placed at the paths used here.
+The [hack] directory contains some self-signed examples and a [generator script](hack/gen-cert.sh)
+for testing purposes.
 
 ```golang
 package main
 
 import (
-  "trivago.com/bootstrap/config"
-  "trivago.com/bootstrap/httpserver"
-	"github.com/spf13/viper"
+  "github.com/trivago/go-bootstrap/config"
+  "github.com/trivago/go-bootstrap/httpserver"
+  "github.com/spf13/viper"
 )
 
 func main() {

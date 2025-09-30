@@ -5,6 +5,9 @@ set shell := ["/usr/bin/env", "bash", "-euo", "pipefail", "-c"]
 _default:
   @just -l
 
+test:
+  go test -v ./...
+
 init-nix:
     #!/usr/bin/env bash
     set -euo pipefail
