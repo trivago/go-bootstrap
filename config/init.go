@@ -72,23 +72,31 @@ func Read(envPrefix, configFile string) {
 	viper.AutomaticEnv()
 
 	// Allow reading from command line flags
-	viperAutomaticFlags()
+	err := viperAutomaticFlags()
 
 	// Setup global loglevel
 	logging.SetLogLevel(viper.GetString(ArgLogLevel))
 
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to process command line arguments.")
+	}
+
 	// Make application cgroups aware
 	// Needs to happen after the logger has been set up.
-	maxprocs.Set(maxprocs.Logger(func(format string, a ...interface{}) {
+	_, err = maxprocs.Set(maxprocs.Logger(func(format string, a ...interface{}) {
 		log.Info().Msgf(format, a...)
 	}))
+
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to configure maxprocs to match container CPU quota.")
+	}
 }
 
 // viperAutomaticFlags converts all keys with a default value into command line
 // flags. Each flag supports a shorthand form, using the first character. If
 // two flags have the same first character, the first flag will have a short
 // form, the second one will not.
-func viperAutomaticFlags() {
+func viperAutomaticFlags() error {
 	usedShorts := map[string]struct{}{}
 	getShort := func(k string) string {
 		short := k[0:1]
@@ -123,8 +131,17 @@ func viperAutomaticFlags() {
 		log.Debug().Msgf("%s = %v", key, viper.Get(key))
 	}
 
-	flagSet.Parse(os.Args[1+SkipArgs:])
-	viper.BindPFlags(flagSet)
+	defer func() {
+		ExtraArgs = flagSet.Args()
+	}()
 
-	ExtraArgs = flagSet.Args()
+	if err := flagSet.Parse(os.Args[1+SkipArgs:]); err != nil {
+		return err
+	}
+
+	if err := viper.BindPFlags(flagSet); err != nil {
+		return err
+	}
+
+	return nil
 }
