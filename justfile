@@ -7,7 +7,7 @@ _default:
 
 # Run all unittests
 test:
-  @go test -v ./...
+  @go test -cover -v ./...
 
 # Manually run pre-commit hooks (linters, formatters, etc)
 lint:
