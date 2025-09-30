@@ -2,8 +2,10 @@ name: pre-commit
 
 on:
   pull_request:
-    branches:
-      - main
+    types:
+      - opened
+      - synchronize
+      - ready_for_review
 
 jobs:
   pre-commit:
