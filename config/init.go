@@ -15,15 +15,17 @@ import (
 )
 
 const (
+	// ArgLogLevel is the command line argument and viper key to set the
+	// loglevel of the application.
 	ArgLogLevel = "loglevel"
 )
 
 var (
-	// Number of command line arguments to skip during paramter parsing in the
-	// InitConfig function.
+	// SkipArgs defines the number of command line arguments to skip
+	// during parameter parsing in the InitConfig function.
 	SkipArgs = 0
 
-	// Name to display when using --help
+	// FlagsName contains the executable name to display when using --help
 	FlagsName = os.Args[0]
 
 	// DefaultLogLevel defines the log level the system should run at by default

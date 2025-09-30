@@ -103,7 +103,7 @@ func main() {
   viper.SetDefault("port", 8443)
   viper.SetDefault("tls.cert", "/etc/certs/tls.crt")
   viper.SetDefault("tls.key", "/etc/certs/tls.key")
-  
+
   config.Read("CFG","config.yaml")
 
   srv := httpserver.NewWithConfig(httpserver.Config{

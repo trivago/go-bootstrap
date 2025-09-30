@@ -17,6 +17,8 @@ import (
 	"github.com/trivago/go-bootstrap/logging"
 )
 
+// Config provides all available configuration options for the HTTP server.
+// Use NewWithConfig to create a server with this configuration.
 type Config struct {
 	// Port defines the HTTP port the server will be listen to.
 	// Defaults to 8080 or 8443 for TLS when left empty
