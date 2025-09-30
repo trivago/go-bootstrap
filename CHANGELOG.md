@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.3.1](https://github.com/trivago/go-bootstrap/compare/v1.3.0...v1.3.1) (2025-09-30)
+
+
+### Bug Fixes
+
+* unhandled errors in config module ([ebc05ef](https://github.com/trivago/go-bootstrap/commit/ebc05eff913d016b334b1c013393a83909726e23))
+* update all dependencies ([#16](https://github.com/trivago/go-bootstrap/issues/16)) ([ebc05ef](https://github.com/trivago/go-bootstrap/commit/ebc05eff913d016b334b1c013393a83909726e23))
+
+
+### Miscellaneous
+
+* add auto-labeling for PRs ([ebc05ef](https://github.com/trivago/go-bootstrap/commit/ebc05eff913d016b334b1c013393a83909726e23))
+* enable coderabbit ([ebc05ef](https://github.com/trivago/go-bootstrap/commit/ebc05eff913d016b334b1c013393a83909726e23))
+* fix issues with pre-commit runs in github actions ([ebc05ef](https://github.com/trivago/go-bootstrap/commit/ebc05eff913d016b334b1c013393a83909726e23))
+* prepare open source publishing ([dcf8f22](https://github.com/trivago/go-bootstrap/commit/dcf8f220c04446f6c7802f7ed4f97524f3e4a89b))
+
 ## [1.3.0](https://github.com/trivago/go-bootstrap/compare/v1.2.4...v1.3.0) (2025-06-18)
 
 
