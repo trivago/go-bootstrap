@@ -24,7 +24,7 @@
               just
               graphviz
               gotools
-              golint
+              golangci-lint
             ];
           };
         }
