@@ -24,7 +24,6 @@
               just
               graphviz
               gotools
-              go-critic
               golint
             ];
           };

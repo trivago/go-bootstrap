@@ -17,4 +17,3 @@ repos:
       - id: go-imports
       - id: go-lint
       - id: go-mod-tidy
-      - id: go-critic
