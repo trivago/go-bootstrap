@@ -17,20 +17,23 @@ All files in the repository are subject to the [Apache 2.0 License](LICENSE)
 
 ## Builds and Releases
 
-All commits to the main branch need to use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
+All commits to the main branch need to use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).  
 Releases will be generated automatically from these commits using [Release Please](https://github.com/googleapis/release-please).
 
-All required tools can be installed locally via [nix](https://nixos.org/)
-and are loaded on demand via [direnv](https://direnv.net/).
+### Required tools
 
+All [required tools](flake.nix) can be installed locally via [nix](https://nixos.org/)
+and are loaded on demand via [direnv](https://direnv.net/).  
 On MacOS you can install nix via the installer from [determinate systems](https://determinate.systems/).
 
 ```shell
 curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
 ```
 
-We provided a [just file](https://github.com/casey/just) to generate the required `.envrc` file.
-Run `just init-nix` to get started, or inspect the [justfile](justfile) to create it yourself.
+We provided a [justfile](https://github.com/casey/just) to generate the required `.envrc` file.
+Run `just init-nix` to get started, or run the [script](hack/init-nix.sh) directly.
+
+### Running unit-tests
 
 After you have set up your environment, run unittests via `just test` or
 
