@@ -1,5 +1,5 @@
 ---
-name: Conventional Commit Validation
+name: conventional-commit validation
 on:
   pull_request_target:
     types:
