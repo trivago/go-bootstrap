@@ -1,5 +1,6 @@
 {
-  "draft": true,
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
   "changelog-sections": [
     {
       "type": "feat",
@@ -20,5 +21,12 @@
   "exclude-paths": [
     "hack",
     ".github"
-  ]
+  ],
+  "packages": {
+    ".": {
+      "package-name": "go-boostrap",
+      "changelog-path": "CHANGELOG.md",
+      "release-type": "go"
+    }
+  }
 }
