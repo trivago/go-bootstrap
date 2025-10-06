@@ -11,6 +11,11 @@ More precisely it expect tools to:
 - Use [Gin](https://github.com/gin-gonic/gin) for serving HTTP
 - Use [viper](https://github.com/spf13/viper) for configuration
 
+## Maintenance and PRs
+
+This repository is in active development but is not our main focus.  
+PRs are welcome, but will take some time to be reviewed.
+
 ## License
 
 All files in the repository are subject to the [Apache 2.0 License](LICENSE)
