@@ -7,8 +7,8 @@ opinionated on the modules used in these tools.
 More precisely it expect tools to:
 
 - Use [zerolog](https://github.com/rs/zerolog) for logging
-- Be compatible to Google Cloud logs by providing [commonly used fields](https://cloud.google.com/logging/docs/structured-logging#structured_logging_special_fields)
-- Use [Gin](https://github.com/gin-gonic/gin) for serving HTTP
+- Be compatible to Google Cloud logs by providing [commonly used fields](https://docs.cloud.google.com/logging/docs/structured-logging#structured_logging_special_fields)
+- Use [net/http](https://pkg.go.dev/net/http) or [fasthttp](https://github.com/valyala/fasthttp) for serving HTTP
 - Use [viper](https://github.com/spf13/viper) for configuration
 
 ## Maintenance and PRs
@@ -67,12 +67,17 @@ func main() {
 
 ### HTTP server
 
-This extends the minimal example to let the workload serve HTTP.
+This extends the minimal example to let the workload serve HTTP with the
+standard library. Any framework that implements `http.Handler` (for example
+Gin) can be passed the same way.
 
 ```golang
 package main
 
 import (
+  "log"
+  "net/http"
+
   "github.com/trivago/go-bootstrap/config"
   "github.com/trivago/go-bootstrap/httpserver"
   "github.com/spf13/viper"
@@ -82,9 +87,60 @@ func main() {
   viper.SetDefault("port", 8080)
   config.Read("CFG","config.yaml")
 
-  port := viper.GetInt("port")
+  mux := http.NewServeMux()
+  mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
+  })
 
-  srv := httpserver.New(port, httpserver.AlwaysOk, httpserver.AlwaysOk, nil)
+  srv, err := httpserver.New(httpserver.Config{
+    Port:                viper.GetInt("port"),
+    Health:              httpserver.AlwaysOk,
+    Ready:               httpserver.AlwaysOk,
+    DisableAccessLogFor: []string{"/healthz", "/readyz"},
+  }, mux)
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  httpserver.Listen(srv, nil)
+}
+```
+
+### FastHTTP server
+
+This uses a native fasthttp server with the same probes, logging, recovery,
+and TLS options.
+
+```golang
+package main
+
+import (
+  "log"
+
+  "github.com/trivago/go-bootstrap/config"
+  "github.com/trivago/go-bootstrap/httpserver"
+  "github.com/spf13/viper"
+  "github.com/valyala/fasthttp"
+)
+
+func main() {
+  viper.SetDefault("port", 8080)
+  config.Read("CFG","config.yaml")
+
+  handler := func(ctx *fasthttp.RequestCtx) {
+    ctx.SetStatusCode(fasthttp.StatusOK)
+  }
+
+  srv, err := httpserver.NewFastHTTP(httpserver.Config{
+    Port:                viper.GetInt("port"),
+    Health:              httpserver.AlwaysOk,
+    Ready:               httpserver.AlwaysOk,
+    DisableAccessLogFor: []string{"/healthz", "/readyz"},
+  }, handler)
+  if err != nil {
+    log.Fatal(err)
+  }
+
   httpserver.Listen(srv, nil)
 }
 ```
@@ -99,6 +155,9 @@ for testing purposes.
 package main
 
 import (
+  "log"
+  "net/http"
+
   "github.com/trivago/go-bootstrap/config"
   "github.com/trivago/go-bootstrap/httpserver"
   "github.com/spf13/viper"
@@ -111,11 +170,14 @@ func main() {
 
   config.Read("CFG","config.yaml")
 
-  srv := httpserver.NewWithConfig(httpserver.Config{
+  srv, err := httpserver.New(httpserver.Config{
     Port:        viper.GetInt("port"),
     PathTLSCert: viper.GetString("tls.cert"),
     PathTLSKey:  viper.GetString("tls.key"),
-  })
+  }, http.NewServeMux())
+  if err != nil {
+    log.Fatal(err)
+  }
 
   httpserver.Listen(srv, nil)
 }

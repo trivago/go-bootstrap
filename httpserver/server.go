@@ -10,34 +10,30 @@ import (
 	"syscall"
 	"time"
 
-	golog "log"
-
-	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"github.com/trivago/go-bootstrap/logging"
 )
 
+// Check reports probe health. A nil Check or a nil error means the probe
+// succeeds. Any non-nil error marks the probe as failed.
+type Check func(ctx context.Context) error
+
 // Config provides all available configuration options for the HTTP server.
-// Use NewWithConfig to create a server with this configuration.
 type Config struct {
-	// Port defines the HTTP port the server will be listen to.
-	// Defaults to 8080 or 8443 for TLS when left empty
+	// Port defines the HTTP port the server will listen on.
+	// Defaults to 8080, or 8443 for TLS when left empty.
 	Port int
 
-	// Health defines the handler for the /healthz endpoint.
-	Health gin.HandlerFunc
+	// Health defines the check for the /healthz endpoint.
+	// When nil, the endpoint always returns 200 OK.
+	Health Check
 
-	// Ready defines the handler for the /readyz endpoint.
-	Ready gin.HandlerFunc
+	// Ready defines the check for the /readyz endpoint.
+	// When nil, the endpoint always returns 200 OK.
+	Ready Check
 
-	// DisabledAccessLogFor defines a list of paths for which the access log
+	// DisableAccessLogFor defines a list of paths for which the access log
 	// will not be written. The path must be a full match to be disabled.
-	// This is set to []string{"/healthz", "/readyz"} when using New().
 	DisableAccessLogFor []string
-
-	// InitRoutes defines a function that will be called to configure routes on
-	// this server. Use it to define the handler for your routes.
-	InitRoutes func(router *gin.Engine)
 
 	// PathTLSCert points to the TLS certificate file to use for HTTPS.
 	// When left empty, the server will not use TLS.
@@ -47,126 +43,38 @@ type Config struct {
 	// When left empty, the server will not use TLS.
 	PathTLSKey string
 
-	// CertCacheDuration defines how long a certificate will be cached in memory,
-	// before it is reloaded from disk. Default duration is 7 days.
+	// CertCacheDuration defines how long a certificate will be cached in
+	// memory before it is reloaded from disk. Default duration is 7 days.
 	CertCacheDuration time.Duration
 }
 
-// AlwaysOk is a gin handler that always returns a 200 OK.
-func AlwaysOk(c *gin.Context) {
-	c.Status(http.StatusOK)
-	c.Writer.WriteHeaderNow()
+// Server is the shared lifecycle for net/http and fasthttp servers.
+type Server interface {
+	// ListenAndServe starts the server and blocks until it stops.
+	ListenAndServe() error
+
+	// Shutdown gracefully stops the server.
+	Shutdown(ctx context.Context) error
 }
 
-// New creates a new HTTP server with the given health and ready handlers.
-// Pass an initRoutes function to configure routes on this server.
-func New(port int, health, ready gin.HandlerFunc, initRoutes func(router *gin.Engine)) (*http.Server, error) {
-	return NewWithConfig(Config{
-		Port:                port,
-		Health:              health,
-		Ready:               ready,
-		InitRoutes:          initRoutes,
-		DisableAccessLogFor: []string{"/healthz", "/readyz"},
-	})
+// AlwaysOk is a Check that always reports success.
+func AlwaysOk(_ context.Context) error {
+	return nil
 }
 
-// NewWithConfig allows a more fine-grained configuration of the HTTP server.
-// Use it to e.g. create a server with TLS enabled. Returns nil if the server
-// could not be created.
-func NewWithConfig(config Config) (*http.Server, error) {
-	router := gin.New()
-	router.Use(newZeroLogLogger(config.DisableAccessLogFor), gin.Recovery())
-
-	// Setup routes
-	if config.Health == nil {
-		router.GET("/healthz", AlwaysOk)
-	} else {
-		router.GET("/healthz", config.Health)
-	}
-
-	if config.Ready == nil {
-		router.GET("/readyz", AlwaysOk)
-	} else {
-		router.GET("/readyz", config.Ready)
-	}
-
-	if config.InitRoutes != nil {
-		config.InitRoutes(router)
-	}
-
-	// Setup port and TLS
-	port := 8080
-	if config.Port > 0 {
-		port = config.Port
-	} else if len(config.PathTLSCert) > 0 || len(config.PathTLSKey) > 0 {
-		port = 8443
-	}
-
-	var tlsConfig *tls.Config
-	if len(config.PathTLSCert) > 0 && len(config.PathTLSKey) > 0 {
-		reloadDuration := time.Hour * 24 * 7 // 7 days
-		if config.CertCacheDuration > 0 {
-			reloadDuration = config.CertCacheDuration
-		}
-
-		log.Debug().Msgf("Using TLS certificate %s and key %s", config.PathTLSCert, config.PathTLSKey)
-
-		// Create a certificate handler that is reloading the certificate from disk.
-		// This is required to support certificate rotation.
-		cert := newFileBasedCert(config.PathTLSCert, config.PathTLSKey, reloadDuration)
-		if _, err := cert.GetCertificate(); err != nil {
-			return nil, err
-		}
-
-		tlsConfig = &tls.Config{
-			GetCertificate: func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
-				cert, err := cert.GetCertificate()
-				if err != nil {
-					return nil, err
-				}
-				if err := hello.SupportsCertificate(cert); err != nil {
-					// This error will be hidden by go's standard library, so we log it here
-					log.Error().Err(err).Msg("Certificate does not match client requirements")
-					return nil, err
-				}
-				return cert, nil
-			},
-		}
-	}
-
-	return &http.Server{
-		Addr:      fmt.Sprintf(":%d", port),
-		Handler:   router,
-		ErrorLog:  golog.New(logging.ErrorLogWriter{}, "", 0),
-		TLSConfig: tlsConfig,
-	}, nil
-}
-
-// Listen starts the given HTTP server and blocks until a stop signal like SIGINT or SIGTERM is received.
-// Use the signalHandler if you need to react on any of these signals.
-func Listen(srv *http.Server, signalHandler func(os.Signal)) {
+// Listen starts the given server and blocks until a stop signal like SIGINT
+// or SIGTERM is received. Use signalHandler if you need to react on any of
+// these signals.
+func Listen(srv Server, signalHandler func(os.Signal)) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
-	// Launch server async, as ListenAndServeTLS is blocking.
+	// Launch server async, as ListenAndServe is blocking.
 	go func() {
 		log.Info().Msg("Starting listener")
 
-		var err error
-
-		// This call is blocking
-		if srv.TLSConfig != nil {
-			err = srv.ListenAndServeTLS("", "")
-		} else {
-			err = srv.ListenAndServe()
-		}
-
-		if err != nil {
-			if err == http.ErrServerClosed {
-				log.Warn().Msg("HTTP server was instructed to close")
-			} else {
-				log.Error().Err(err).Msg("Failed to start HTTP server")
-			}
+		if err := srv.ListenAndServe(); err != nil {
+			log.Error().Err(err).Msg("Failed to start HTTP server")
 		}
 
 		log.Info().Msg("Listener exited")
@@ -175,8 +83,7 @@ func Listen(srv *http.Server, signalHandler func(os.Signal)) {
 	}()
 
 	// React on external OS signals to trigger a shutdown.
-	// If the channel was closed, the server did not start
-
+	// If the channel was closed, the server did not start.
 	if sig, isOpen := <-signalChan; isOpen {
 		log.Info().Msgf("Received signal: %s", sig.String())
 		if signalHandler != nil {
@@ -185,9 +92,76 @@ func Listen(srv *http.Server, signalHandler func(os.Signal)) {
 
 		log.Info().Msg("Stopping HTTP server")
 
-		// This call is blocking and unblocks the server go routine
+		// This call is blocking and unblocks the server go routine.
 		if err := srv.Shutdown(context.Background()); err != nil {
 			log.Error().Err(err).Msg("Graceful shutdown failed")
 		}
 	}
+}
+
+// resolvePort returns the listen port from config, applying TLS defaults.
+func resolvePort(config Config) int {
+	if config.Port > 0 {
+		return config.Port
+	}
+	if len(config.PathTLSCert) > 0 || len(config.PathTLSKey) > 0 {
+		return 8443
+	}
+	return 8080
+}
+
+// resolveAddr returns the listen address for the configured port.
+func resolveAddr(config Config) string {
+	return fmt.Sprintf(":%d", resolvePort(config))
+}
+
+// buildTLSConfig creates a TLS config with rotating certificates when both
+// certificate paths are set. Returns nil when TLS is not configured.
+func buildTLSConfig(config Config) (*tls.Config, error) {
+	if len(config.PathTLSCert) == 0 || len(config.PathTLSKey) == 0 {
+		return nil, nil
+	}
+
+	reloadDuration := time.Hour * 24 * 7 // 7 days
+	if config.CertCacheDuration > 0 {
+		reloadDuration = config.CertCacheDuration
+	}
+
+	log.Debug().Msgf(
+		"Using TLS certificate %s and key %s",
+		config.PathTLSCert,
+		config.PathTLSKey,
+	)
+
+	cert := newFileBasedCert(config.PathTLSCert, config.PathTLSKey, reloadDuration)
+	if _, err := cert.GetCertificate(); err != nil {
+		return nil, err
+	}
+
+	return &tls.Config{
+		GetCertificate: func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+			loaded, err := cert.GetCertificate()
+			if err != nil {
+				return nil, err
+			}
+			if err := hello.SupportsCertificate(loaded); err != nil {
+				// This error will be hidden by go's standard library, so we
+				// log it here.
+				log.Error().Err(err).Msg("Certificate does not match client requirements")
+				return nil, err
+			}
+			return loaded, nil
+		},
+	}, nil
+}
+
+// probeStatus maps a Check result to an HTTP status code.
+func probeStatus(ctx context.Context, check Check) int {
+	if check == nil {
+		return http.StatusOK
+	}
+	if err := check(ctx); err != nil {
+		return http.StatusServiceUnavailable
+	}
+	return http.StatusOK
 }
