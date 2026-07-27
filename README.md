@@ -127,15 +127,17 @@ func main() {
   viper.SetDefault("port", 8080)
   config.Read("CFG","config.yaml")
 
+  handler := func(router *gin.Engine) {
+    router.GET("/", func(c *gin.Context) {
+      c.Status(200)
+    })
+  }
+
   srv, err := httpserver.NewGin(
     viper.GetInt("port"),
     httpserver.AlwaysOk,
     httpserver.AlwaysOk,
-    func(router *gin.Engine) {
-      router.GET("/", func(c *gin.Context) {
-        c.Status(200)
-      })
-    },
+    handler,
   )
   if err != nil {
     log.Fatal(err)
