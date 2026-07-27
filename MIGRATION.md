@@ -66,8 +66,6 @@ Do these steps in order.
 
 ## Example: probes only
 
-This pattern matches `gcp-github-runners` command `github-downscaler`.
-
 ### Before
 
 ```go
@@ -101,9 +99,6 @@ httpserver.Listen(srv, nil)
 ---
 
 ## Example: Gin routes
-
-This pattern matches `gcp-github-runners` commands `github-workflow-watcher`
-and `github-workflow-metrics`.
 
 ### Before
 
@@ -147,7 +142,6 @@ httpserver.Listen(srv, nil)
 
 ## Example: custom Gin health handler
 
-This pattern matches `gcp-github-runners` command `groot`.
 Keep the existing `HealthProbe` Gin handler.
 The probe status codes stay the same, including HTTP 410.
 
