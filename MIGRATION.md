@@ -3,10 +3,6 @@
 This guide explains the breaking change in the `httpserver` package.
 Use this guide when you move from the Gin-only API to the new API.
 
-**NOTE:** This text follows ASD-STE100 Simplified Technical English as an aid.
-Final approval of STE compliance rests with the human writer.
-The official standard is available at [asd-ste100.org](https://asd-ste100.org).
-
 ---
 
 ## What changed
