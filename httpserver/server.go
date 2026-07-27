@@ -57,8 +57,8 @@ type Server interface {
 	Shutdown(ctx context.Context) error
 }
 
-// AlwaysOk is a Check that always reports success.
-func AlwaysOk(_ context.Context) error {
+// CheckOK is a Check that always reports success.
+func CheckOK(_ context.Context) error {
 	return nil
 }
 

@@ -26,10 +26,25 @@ type HTTPServer struct {
 	Server *http.Server
 }
 
-// New creates a net/http server with shared probes, access logging, recovery,
-// and optional TLS. The handler may be any net/http-compatible router such as
-// Gin or the standard ServeMux.
-func New(config Config, handler http.Handler) (*HTTPServer, error) {
+// defaultDisableAccessLogFor is the access-log exclusion list used by the
+// convenience constructors.
+var defaultDisableAccessLogFor = []string{healthPath, readyPath}
+
+// New creates a net/http server with the given port, probe checks, and
+// handler. Access logs for /healthz and /readyz are disabled by default.
+func New(port int, health, ready Check, handler http.Handler) (*HTTPServer, error) {
+	return NewWithConfig(Config{
+		Port:                port,
+		Health:              health,
+		Ready:               ready,
+		DisableAccessLogFor: defaultDisableAccessLogFor,
+	}, handler)
+}
+
+// NewWithConfig creates a net/http server with fine-grained configuration.
+// The handler may be any net/http-compatible router such as Gin or the
+// standard ServeMux.
+func NewWithConfig(config Config, handler http.Handler) (*HTTPServer, error) {
 	syncLogThresholds()
 
 	tlsConfig, err := buildTLSConfig(config)

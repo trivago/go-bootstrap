@@ -8,7 +8,7 @@ More precisely it expect tools to:
 
 - Use [zerolog](https://github.com/rs/zerolog) for logging
 - Be compatible to Google Cloud logs by providing [commonly used fields](https://docs.cloud.google.com/logging/docs/structured-logging#structured_logging_special_fields)
-- Use [net/http](https://pkg.go.dev/net/http) or [fasthttp](https://github.com/valyala/fasthttp) for serving HTTP
+- Use [net/http](https://pkg.go.dev/net/http), [Gin](https://github.com/gin-gonic/gin), or [fasthttp](https://github.com/valyala/fasthttp) for serving HTTP
 - Use [viper](https://github.com/spf13/viper) for configuration
 
 ## Maintenance and PRs
@@ -68,8 +68,8 @@ func main() {
 ### HTTP server
 
 This extends the minimal example to let the workload serve HTTP with the
-standard library. Any framework that implements `http.Handler` (for example
-Gin) can be passed the same way.
+standard library. Any framework that implements `http.Handler` can be passed
+the same way. See [MIGRATION.md](MIGRATION.md) for upgrade notes.
 
 ```golang
 package main
@@ -92,12 +92,51 @@ func main() {
     w.WriteHeader(http.StatusOK)
   })
 
-  srv, err := httpserver.New(httpserver.Config{
-    Port:                viper.GetInt("port"),
-    Health:              httpserver.AlwaysOk,
-    Ready:               httpserver.AlwaysOk,
-    DisableAccessLogFor: []string{"/healthz", "/readyz"},
-  }, mux)
+  srv, err := httpserver.New(
+    viper.GetInt("port"),
+    httpserver.CheckOK,
+    httpserver.CheckOK,
+    mux,
+  )
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  httpserver.Listen(srv, nil)
+}
+```
+
+### Gin server
+
+This creates a Gin engine inside the package and registers routes through an
+init callback. Existing Gin handlers and probe functions stay valid.
+
+```golang
+package main
+
+import (
+  "log"
+
+  "github.com/gin-gonic/gin"
+  "github.com/trivago/go-bootstrap/config"
+  "github.com/trivago/go-bootstrap/httpserver"
+  "github.com/spf13/viper"
+)
+
+func main() {
+  viper.SetDefault("port", 8080)
+  config.Read("CFG","config.yaml")
+
+  srv, err := httpserver.NewGin(
+    viper.GetInt("port"),
+    httpserver.AlwaysOk,
+    httpserver.AlwaysOk,
+    func(router *gin.Engine) {
+      router.GET("/", func(c *gin.Context) {
+        c.Status(200)
+      })
+    },
+  )
   if err != nil {
     log.Fatal(err)
   }
@@ -131,12 +170,12 @@ func main() {
     ctx.SetStatusCode(fasthttp.StatusOK)
   }
 
-  srv, err := httpserver.NewFastHTTP(httpserver.Config{
-    Port:                viper.GetInt("port"),
-    Health:              httpserver.AlwaysOk,
-    Ready:               httpserver.AlwaysOk,
-    DisableAccessLogFor: []string{"/healthz", "/readyz"},
-  }, handler)
+  srv, err := httpserver.NewFastHTTP(
+    viper.GetInt("port"),
+    httpserver.CheckOK,
+    httpserver.CheckOK,
+    handler,
+  )
   if err != nil {
     log.Fatal(err)
   }
@@ -170,7 +209,7 @@ func main() {
 
   config.Read("CFG","config.yaml")
 
-  srv, err := httpserver.New(httpserver.Config{
+  srv, err := httpserver.NewWithConfig(httpserver.Config{
     Port:        viper.GetInt("port"),
     PathTLSCert: viper.GetString("tls.cert"),
     PathTLSKey:  viper.GetString("tls.key"),

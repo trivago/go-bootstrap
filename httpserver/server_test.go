@@ -23,7 +23,7 @@ func init() {
 
 // TestTLS verifies that a TLS-enabled net/http server serves /healthz.
 func TestTLS(t *testing.T) {
-	srv, err := New(Config{
+	srv, err := NewWithConfig(Config{
 		Port:        8443,
 		PathTLSCert: "../hack/tls.cert",
 		PathTLSKey:  "../hack/tls.key",
@@ -54,7 +54,7 @@ func TestTLS(t *testing.T) {
 func TestNewTLSConfig(t *testing.T) {
 	t.Parallel()
 
-	srv, err := New(Config{
+	srv, err := NewWithConfig(Config{
 		PathTLSCert: "../hack/tls.cert",
 		PathTLSKey:  "../hack/tls.key",
 	}, http.NewServeMux())
@@ -69,7 +69,7 @@ func TestNewTLSConfig(t *testing.T) {
 func TestNewFastHTTPTLSConfig(t *testing.T) {
 	t.Parallel()
 
-	srv, err := NewFastHTTP(Config{
+	srv, err := NewFastHTTPWithConfig(Config{
 		PathTLSCert: "../hack/tls.cert",
 		PathTLSKey:  "../hack/tls.key",
 	}, nil)
@@ -166,7 +166,7 @@ func TestHTTPHandlerBehaviors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			srv, err := New(tt.config, tt.handler)
+			srv, err := NewWithConfig(tt.config, tt.handler)
 			require.NoError(t, err)
 
 			listener := startHTTPServer(t, srv)
@@ -279,7 +279,7 @@ func TestFastHTTPHandlerBehaviors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			srv, err := NewFastHTTP(tt.config, tt.handler)
+			srv, err := NewFastHTTPWithConfig(tt.config, tt.handler)
 			require.NoError(t, err)
 
 			client := startFastHTTPServer(t, srv)
@@ -305,7 +305,7 @@ func TestHTTPServerLifecycleNormalizesClosedError(t *testing.T) {
 	addr := listener.Addr().String()
 	require.NoError(t, listener.Close())
 
-	srv, err := New(Config{}, http.NewServeMux())
+	srv, err := NewWithConfig(Config{}, http.NewServeMux())
 	require.NoError(t, err)
 	srv.Server.Addr = addr
 
@@ -334,7 +334,7 @@ func TestFastHTTPServerLifecycle(t *testing.T) {
 	addr := listener.Addr().String()
 	require.NoError(t, listener.Close())
 
-	srv, err := NewFastHTTP(Config{}, nil)
+	srv, err := NewFastHTTPWithConfig(Config{}, nil)
 	require.NoError(t, err)
 	srv.addr = addr
 

@@ -22,9 +22,27 @@ type FastHTTPServer struct {
 	useTLS bool
 }
 
-// NewFastHTTP creates a native fasthttp server with shared probes, access
-// logging, recovery, and optional TLS.
-func NewFastHTTP(config Config, handler fasthttp.RequestHandler) (*FastHTTPServer, error) {
+// NewFastHTTP creates a fasthttp server with the given port, probe checks,
+// and handler. Access logs for /healthz and /readyz are disabled by default.
+func NewFastHTTP(
+	port int,
+	health, ready Check,
+	handler fasthttp.RequestHandler,
+) (*FastHTTPServer, error) {
+	return NewFastHTTPWithConfig(Config{
+		Port:                port,
+		Health:              health,
+		Ready:               ready,
+		DisableAccessLogFor: defaultDisableAccessLogFor,
+	}, handler)
+}
+
+// NewFastHTTPWithConfig creates a native fasthttp server with fine-grained
+// configuration, shared probes, access logging, recovery, and optional TLS.
+func NewFastHTTPWithConfig(
+	config Config,
+	handler fasthttp.RequestHandler,
+) (*FastHTTPServer, error) {
 	syncLogThresholds()
 
 	tlsConfig, err := buildTLSConfig(config)
