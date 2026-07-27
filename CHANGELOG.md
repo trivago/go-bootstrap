@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.2](https://github.com/trivago/go-bootstrap/compare/v1.3.1...v1.3.2) (2026-01-29)
+
+
+### Bug Fixes
+
+* **security:** bump github.com/quic-go/quic-go from 0.54.1 to 0.57.0 ([#19](https://github.com/trivago/go-bootstrap/issues/19)) ([67051b7](https://github.com/trivago/go-bootstrap/commit/67051b791dfffeb86e0428ad37f7259b6d9f0aad))
+* **security:** bump golang.org/x/crypto from 0.42.0 to 0.45.0 ([#18](https://github.com/trivago/go-bootstrap/issues/18)) ([7795d4b](https://github.com/trivago/go-bootstrap/commit/7795d4b5741f536429640a67ddcc275eba970319))
+
 ## [1.3.1](https://github.com/trivago/go-bootstrap/compare/v1.3.0...v1.3.1) (2025-10-02)
 
 
