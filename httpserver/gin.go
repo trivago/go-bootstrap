@@ -3,6 +3,7 @@ package httpserver
 import (
 	golog "log"
 	"net/http"
+	"slices"
 	"sync"
 	"time"
 
@@ -68,7 +69,7 @@ func NewGin(
 		Health:              health,
 		Ready:               ready,
 		InitRoutes:          initRoutes,
-		DisableAccessLogFor: defaultDisableAccessLogFor,
+		DisableAccessLogFor: slices.Clone(defaultDisableAccessLogFor),
 	})
 }
 

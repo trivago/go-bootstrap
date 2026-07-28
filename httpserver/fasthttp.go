@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -33,7 +34,7 @@ func NewFastHTTP(
 		Port:                port,
 		Health:              health,
 		Ready:               ready,
-		DisableAccessLogFor: defaultDisableAccessLogFor,
+		DisableAccessLogFor: slices.Clone(defaultDisableAccessLogFor),
 	}, handler)
 }
 

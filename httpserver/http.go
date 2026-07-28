@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"slices"
 	"time"
 
 	golog "log"
@@ -37,7 +38,7 @@ func New(port int, health, ready Check, handler http.Handler) (*HTTPServer, erro
 		Port:                port,
 		Health:              health,
 		Ready:               ready,
-		DisableAccessLogFor: defaultDisableAccessLogFor,
+		DisableAccessLogFor: slices.Clone(defaultDisableAccessLogFor),
 	}, handler)
 }
 

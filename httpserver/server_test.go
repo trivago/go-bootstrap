@@ -21,33 +21,43 @@ func init() {
 	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 }
 
-// TestTLS verifies that a TLS-enabled net/http server serves /healthz.
+// TestTLS verifies that a TLS-enabled net/http server serves /healthz over
+// a local ephemeral listener.
 func TestTLS(t *testing.T) {
+	t.Parallel()
+
 	srv, err := NewWithConfig(Config{
-		Port:        8443,
 		PathTLSCert: "../hack/tls.cert",
 		PathTLSKey:  "../hack/tls.key",
 	}, http.NewServeMux())
-
 	require.NoError(t, err)
-	require.NotNil(t, srv)
 	require.NotNil(t, srv.Server.TLSConfig)
 
-	go Listen(srv, nil)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
 
-	// On OSX a warning pops up where the user needs to allow network access
-	// by the unittest. To give the user some time, we wait for 5 seconds.
-	time.Sleep(5 * time.Second)
+	go func() {
+		_ = srv.Server.ServeTLS(listener, "", "")
+	}()
+	t.Cleanup(func() {
+		_ = srv.Shutdown(context.Background())
+		_ = listener.Close()
+	})
 
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	resp, err := http.Get("https://localhost:8443/healthz")
+	addr := listener.Addr().String()
+	client := &http.Client{Transport: &http.Transport{
+		DialContext: func(_ context.Context, network, _ string) (net.Conn, error) {
+			return net.Dial(network, addr)
+		},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}}
+
+	resp, err := client.Get("https://localhost/healthz")
 	require.NoError(t, err)
 	defer func() {
 		_ = resp.Body.Close()
 	}()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-	require.NoError(t, srv.Shutdown(context.Background()))
 }
 
 // TestNewTLSConfig verifies TLS configuration is applied without listening.
