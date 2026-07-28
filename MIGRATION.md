@@ -49,15 +49,18 @@ If `Check` returns an error, the probe returns HTTP 503.
 
 Do these steps in order.
 
-1. Update the `github.com/trivago/go-bootstrap` module version in `go.mod`.
-2. Run `go mod tidy`.
+1. Install the v2 module:
+   `go get github.com/trivago/go-bootstrap/v2@latest`.
+2. Rewrite imports from `github.com/trivago/go-bootstrap/...` to
+   `github.com/trivago/go-bootstrap/v2/...`.
 3. Replace `New(` with `NewGin(` when the call uses Gin handlers.
 4. Replace `NewWithConfig` with `NewGinWithConfig`.
 5. Rename `httpserver.Config` to `httpserver.GinConfig` in those calls.
 6. Keep `InitRoutes`, `Health`, `Ready`, and `AlwaysOk` unchanged.
 7. Keep `httpserver.Listen(srv, signalHandler)`.
-8. Build the application.
-9. Run the tests for the HTTP endpoints.
+8. Run `go mod tidy`.
+9. Build the application.
+10. Run the tests for the HTTP endpoints.
 
 ---
 

@@ -10,7 +10,7 @@ import (
 	golog "log"
 
 	"github.com/rs/zerolog/log"
-	"github.com/trivago/go-bootstrap/logging"
+	"github.com/trivago/go-bootstrap/v2/logging"
 )
 
 const (

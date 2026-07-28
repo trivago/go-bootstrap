@@ -57,7 +57,7 @@ the workload CGroup aware.
 package main
 
 import (
-  "github.com/trivago/go-bootstrap/config"
+  "github.com/trivago/go-bootstrap/v2/config"
 )
 
 func main() {
@@ -78,8 +78,8 @@ import (
   "log"
   "net/http"
 
-  "github.com/trivago/go-bootstrap/config"
-  "github.com/trivago/go-bootstrap/httpserver"
+  "github.com/trivago/go-bootstrap/v2/config"
+  "github.com/trivago/go-bootstrap/v2/httpserver"
   "github.com/spf13/viper"
 )
 
@@ -118,8 +118,8 @@ import (
   "log"
 
   "github.com/gin-gonic/gin"
-  "github.com/trivago/go-bootstrap/config"
-  "github.com/trivago/go-bootstrap/httpserver"
+  "github.com/trivago/go-bootstrap/v2/config"
+  "github.com/trivago/go-bootstrap/v2/httpserver"
   "github.com/spf13/viper"
 )
 
@@ -158,8 +158,8 @@ package main
 import (
   "log"
 
-  "github.com/trivago/go-bootstrap/config"
-  "github.com/trivago/go-bootstrap/httpserver"
+  "github.com/trivago/go-bootstrap/v2/config"
+  "github.com/trivago/go-bootstrap/v2/httpserver"
   "github.com/spf13/viper"
   "github.com/valyala/fasthttp"
 )
@@ -199,8 +199,8 @@ import (
   "log"
   "net/http"
 
-  "github.com/trivago/go-bootstrap/config"
-  "github.com/trivago/go-bootstrap/httpserver"
+  "github.com/trivago/go-bootstrap/v2/config"
+  "github.com/trivago/go-bootstrap/v2/httpserver"
   "github.com/spf13/viper"
 )
 

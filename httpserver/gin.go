@@ -9,7 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
-	"github.com/trivago/go-bootstrap/logging"
+	"github.com/trivago/go-bootstrap/v2/logging"
 )
 
 // ginModeOnce ensures Gin console and mode settings run once per process.

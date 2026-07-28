@@ -1,4 +1,4 @@
-module github.com/trivago/go-bootstrap
+module github.com/trivago/go-bootstrap/v2
 
 go 1.25.0
 
