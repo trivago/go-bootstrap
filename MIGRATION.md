@@ -1,11 +1,8 @@
-# Upgrade guide for httpserver
+# Upgrade guide
 
-This guide explains the breaking change in the `httpserver` package.
-Use this guide when you move from the Gin-only API to the new API.
+## 1.3.2 to 2.0
 
----
-
-## What changed
+### What changed
 
 The previous API created a Gin engine inside the package and accepted only Gin.
 The new API supports three constructor pairs:
@@ -24,7 +21,7 @@ The package still provides these shared features:
 
 ---
 
-## API map
+### API map
 
 | Previous API | New Gin path |
 |---|---|
@@ -48,7 +45,7 @@ If `Check` returns an error, the probe returns HTTP 503.
 
 ---
 
-## Upgrade procedure for Gin applications
+### Upgrade procedure for Gin applications
 
 Do these steps in order.
 
@@ -64,9 +61,9 @@ Do these steps in order.
 
 ---
 
-## Example: probes only
+### Example: probes only
 
-### Before
+#### Before
 
 ```go
 srv, err := httpserver.New(
@@ -81,7 +78,7 @@ if err != nil {
 httpserver.Listen(srv, nil)
 ```
 
-### After
+#### After
 
 ```go
 srv, err := httpserver.NewGin(
@@ -98,9 +95,9 @@ httpserver.Listen(srv, nil)
 
 ---
 
-## Example: Gin routes
+### Example: Gin routes
 
-### Before
+#### Before
 
 ```go
 srv, err := httpserver.NewWithConfig(httpserver.Config{
@@ -119,7 +116,7 @@ if err != nil {
 httpserver.Listen(srv, nil)
 ```
 
-### After
+#### After
 
 ```go
 srv, err := httpserver.NewGinWithConfig(httpserver.GinConfig{
@@ -140,12 +137,12 @@ httpserver.Listen(srv, nil)
 
 ---
 
-## Example: custom Gin health handler
+### Example: custom Gin health handler
 
 Keep the existing `HealthProbe` Gin handler.
 The probe status codes stay the same, including HTTP 410.
 
-### Before
+#### Before
 
 ```go
 srv, err := httpserver.NewWithConfig(httpserver.Config{
@@ -164,7 +161,7 @@ srv, err := httpserver.NewWithConfig(httpserver.Config{
 })
 ```
 
-### After
+#### After
 
 ```go
 srv, err := httpserver.NewGinWithConfig(httpserver.GinConfig{
@@ -185,7 +182,7 @@ srv, err := httpserver.NewGinWithConfig(httpserver.GinConfig{
 
 ---
 
-## Example: Gin handlers from other modules
+### Example: Gin handlers from other modules
 
 Register those handlers inside `InitRoutes`:
 
@@ -207,7 +204,7 @@ httpserver.Listen(srv, nil)
 
 ---
 
-## Optional: net/http and fasthttp
+### Optional: net/http and fasthttp
 
 Use `New` / `NewWithConfig` when the application builds a `net/http.Handler`.
 Use `CheckOK` for always-successful Check probes.
@@ -241,7 +238,7 @@ srv, err := httpserver.NewFastHTTP(
 
 ---
 
-## Access to the native server
+### Access to the native server
 
 `New`, `NewWithConfig`, `NewGin`, and `NewGinWithConfig` return `*HTTPServer`.
 That type holds `*http.Server` in the `Server` field.
@@ -253,7 +250,7 @@ Change fields on the native server before you call `Listen` when you need them.
 
 ---
 
-## Verification procedure
+### Verification procedure
 
 1. Start the application.
 2. Call `GET /healthz` and confirm HTTP 200 for a healthy process.
