@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/automaxprocs/maxprocs"
 
-	"github.com/trivago/go-bootstrap/logging"
+	"github.com/trivago/go-bootstrap/v2/logging"
 )
 
 const (

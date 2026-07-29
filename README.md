@@ -7,8 +7,8 @@ opinionated on the modules used in these tools.
 More precisely it expect tools to:
 
 - Use [zerolog](https://github.com/rs/zerolog) for logging
-- Be compatible to Google Cloud logs by providing [commonly used fields](https://cloud.google.com/logging/docs/structured-logging#structured_logging_special_fields)
-- Use [Gin](https://github.com/gin-gonic/gin) for serving HTTP
+- Be compatible to Google Cloud logs by providing [commonly used fields](https://docs.cloud.google.com/logging/docs/structured-logging#structured_logging_special_fields)
+- Use [net/http](https://pkg.go.dev/net/http), [Gin](https://github.com/gin-gonic/gin), or [fasthttp](https://github.com/valyala/fasthttp) for serving HTTP
 - Use [viper](https://github.com/spf13/viper) for configuration
 
 ## Maintenance and PRs
@@ -57,7 +57,7 @@ the workload CGroup aware.
 package main
 
 import (
-  "github.com/trivago/go-bootstrap/config"
+  "github.com/trivago/go-bootstrap/v2/config"
 )
 
 func main() {
@@ -67,14 +67,19 @@ func main() {
 
 ### HTTP server
 
-This extends the minimal example to let the workload serve HTTP.
+This extends the minimal example to let the workload serve HTTP with the
+standard library. Any framework that implements `http.Handler` can be passed
+the same way. See [MIGRATION.md](MIGRATION.md) for upgrade notes.
 
 ```golang
 package main
 
 import (
-  "github.com/trivago/go-bootstrap/config"
-  "github.com/trivago/go-bootstrap/httpserver"
+  "log"
+  "net/http"
+
+  "github.com/trivago/go-bootstrap/v2/config"
+  "github.com/trivago/go-bootstrap/v2/httpserver"
   "github.com/spf13/viper"
 )
 
@@ -82,9 +87,101 @@ func main() {
   viper.SetDefault("port", 8080)
   config.Read("CFG","config.yaml")
 
-  port := viper.GetInt("port")
+  mux := http.NewServeMux()
+  mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
+  })
 
-  srv := httpserver.New(port, httpserver.AlwaysOk, httpserver.AlwaysOk, nil)
+  srv, err := httpserver.New(
+    viper.GetInt("port"),
+    httpserver.CheckOK,
+    httpserver.CheckOK,
+    mux,
+  )
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  httpserver.Listen(srv, nil)
+}
+```
+
+### Gin server
+
+This creates a Gin engine inside the package and registers routes through an
+init callback. Existing Gin handlers and probe functions stay valid.
+
+```golang
+package main
+
+import (
+  "log"
+
+  "github.com/gin-gonic/gin"
+  "github.com/trivago/go-bootstrap/v2/config"
+  "github.com/trivago/go-bootstrap/v2/httpserver"
+  "github.com/spf13/viper"
+)
+
+func main() {
+  viper.SetDefault("port", 8080)
+  config.Read("CFG","config.yaml")
+
+  handler := func(router *gin.Engine) {
+    router.GET("/", func(c *gin.Context) {
+      c.Status(200)
+    })
+  }
+
+  srv, err := httpserver.NewGin(
+    viper.GetInt("port"),
+    httpserver.AlwaysOk,
+    httpserver.AlwaysOk,
+    handler,
+  )
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  httpserver.Listen(srv, nil)
+}
+```
+
+### FastHTTP server
+
+This uses a native fasthttp server with the same probes, logging, recovery,
+and TLS options.
+
+```golang
+package main
+
+import (
+  "log"
+
+  "github.com/trivago/go-bootstrap/v2/config"
+  "github.com/trivago/go-bootstrap/v2/httpserver"
+  "github.com/spf13/viper"
+  "github.com/valyala/fasthttp"
+)
+
+func main() {
+  viper.SetDefault("port", 8080)
+  config.Read("CFG","config.yaml")
+
+  handler := func(ctx *fasthttp.RequestCtx) {
+    ctx.SetStatusCode(fasthttp.StatusOK)
+  }
+
+  srv, err := httpserver.NewFastHTTP(
+    viper.GetInt("port"),
+    httpserver.CheckOK,
+    httpserver.CheckOK,
+    handler,
+  )
+  if err != nil {
+    log.Fatal(err)
+  }
+
   httpserver.Listen(srv, nil)
 }
 ```
@@ -95,12 +192,19 @@ This example requires valid TLS certificates to be present as files.
 The [hack] directory contains some self-signed examples and a [generator script](hack/gen-cert.sh)
 for testing purposes.
 
+Use `NewWithConfig` for `net/http`, or `NewFastHTTPWithConfig` for fasthttp.
+
+#### net/http
+
 ```golang
 package main
 
 import (
-  "github.com/trivago/go-bootstrap/config"
-  "github.com/trivago/go-bootstrap/httpserver"
+  "log"
+  "net/http"
+
+  "github.com/trivago/go-bootstrap/v2/config"
+  "github.com/trivago/go-bootstrap/v2/httpserver"
   "github.com/spf13/viper"
 )
 
@@ -111,11 +215,52 @@ func main() {
 
   config.Read("CFG","config.yaml")
 
-  srv := httpserver.NewWithConfig(httpserver.Config{
+  srv, err := httpserver.NewWithConfig(httpserver.Config{
     Port:        viper.GetInt("port"),
     PathTLSCert: viper.GetString("tls.cert"),
     PathTLSKey:  viper.GetString("tls.key"),
-  })
+  }, http.NewServeMux())
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  httpserver.Listen(srv, nil)
+}
+```
+
+#### FastHTTP
+
+```golang
+package main
+
+import (
+  "log"
+
+  "github.com/trivago/go-bootstrap/v2/config"
+  "github.com/trivago/go-bootstrap/v2/httpserver"
+  "github.com/spf13/viper"
+  "github.com/valyala/fasthttp"
+)
+
+func main() {
+  viper.SetDefault("port", 8443)
+  viper.SetDefault("tls.cert", "/etc/certs/tls.crt")
+  viper.SetDefault("tls.key", "/etc/certs/tls.key")
+
+  config.Read("CFG","config.yaml")
+
+  handler := func(ctx *fasthttp.RequestCtx) {
+    ctx.SetStatusCode(fasthttp.StatusOK)
+  }
+
+  srv, err := httpserver.NewFastHTTPWithConfig(httpserver.Config{
+    Port:        viper.GetInt("port"),
+    PathTLSCert: viper.GetString("tls.cert"),
+    PathTLSKey:  viper.GetString("tls.key"),
+  }, handler)
+  if err != nil {
+    log.Fatal(err)
+  }
 
   httpserver.Listen(srv, nil)
 }
