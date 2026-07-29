@@ -192,6 +192,10 @@ This example requires valid TLS certificates to be present as files.
 The [hack] directory contains some self-signed examples and a [generator script](hack/gen-cert.sh)
 for testing purposes.
 
+Use `NewWithConfig` for `net/http`, or `NewFastHTTPWithConfig` for fasthttp.
+
+#### net/http
+
 ```golang
 package main
 
@@ -216,6 +220,44 @@ func main() {
     PathTLSCert: viper.GetString("tls.cert"),
     PathTLSKey:  viper.GetString("tls.key"),
   }, http.NewServeMux())
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  httpserver.Listen(srv, nil)
+}
+```
+
+#### FastHTTP
+
+```golang
+package main
+
+import (
+  "log"
+
+  "github.com/trivago/go-bootstrap/v2/config"
+  "github.com/trivago/go-bootstrap/v2/httpserver"
+  "github.com/spf13/viper"
+  "github.com/valyala/fasthttp"
+)
+
+func main() {
+  viper.SetDefault("port", 8443)
+  viper.SetDefault("tls.cert", "/etc/certs/tls.crt")
+  viper.SetDefault("tls.key", "/etc/certs/tls.key")
+
+  config.Read("CFG","config.yaml")
+
+  handler := func(ctx *fasthttp.RequestCtx) {
+    ctx.SetStatusCode(fasthttp.StatusOK)
+  }
+
+  srv, err := httpserver.NewFastHTTPWithConfig(httpserver.Config{
+    Port:        viper.GetInt("port"),
+    PathTLSCert: viper.GetString("tls.cert"),
+    PathTLSKey:  viper.GetString("tls.key"),
+  }, handler)
   if err != nil {
     log.Fatal(err)
   }
