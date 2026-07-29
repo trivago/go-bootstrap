@@ -62,9 +62,9 @@ func CheckOK(_ context.Context) error {
 	return nil
 }
 
-// Listen starts the given server and blocks until a stop signal like SIGINT
-// or SIGTERM is received. Use signalHandler if you need to react on any of
-// these signals.
+// Listen starts the given server and blocks until a stop signal like SIGINT,
+// SIGQUIT or SIGTERM is received. Use signalHandler if you need to react on
+// any ofthese signals.
 func Listen(srv Server, signalHandler func(os.Signal)) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
