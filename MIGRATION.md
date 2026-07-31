@@ -14,10 +14,13 @@ The new API supports three constructor pairs:
 The package still provides these shared features:
 
 - `/healthz` and `/readyz` probes
-- access logs
+- access logs with identical fields (`latency`, `status`, `clientip`,
+  `method`, `path`) on all three servers; `clientip` is resolved from
+  `X-Forwarded-For`, then `X-Real-IP`, then the peer IP; paths listed in
+  `DisableAccessLogFor` match exactly and case-sensitively
 - panic recovery
 - TLS certificate reload
-- signal handling through `Listen`
+- signal handling through `Listen`, which bounds graceful shutdown at 30s
 
 ---
 

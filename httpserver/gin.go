@@ -30,7 +30,7 @@ type GinConfig struct {
 	Ready gin.HandlerFunc
 
 	// DisableAccessLogFor defines a list of paths for which the access log
-	// will not be written. The path must be a full match to be disabled.
+	// will not be written. The path must match exactly, including case.
 	DisableAccessLogFor []string
 
 	// InitRoutes defines a function that will be called to configure routes
