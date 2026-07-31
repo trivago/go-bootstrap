@@ -13,6 +13,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	// shutdownTimeout bounds the graceful shutdown triggered by Listen.
+	shutdownTimeout = 30 * time.Second
+)
+
 // Check reports probe health. A nil Check or a nil error means the probe
 // succeeds. Any non-nil error marks the probe as failed.
 type Check func(ctx context.Context) error
@@ -64,7 +69,7 @@ func CheckOK(_ context.Context) error {
 
 // Listen starts the given server and blocks until a stop signal like SIGINT,
 // SIGQUIT or SIGTERM is received. Use signalHandler if you need to react on
-// any ofthese signals.
+// any of these signals. Graceful shutdown is bounded by shutdownTimeout.
 func Listen(srv Server, signalHandler func(os.Signal)) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -93,7 +98,10 @@ func Listen(srv Server, signalHandler func(os.Signal)) {
 		log.Info().Msg("Stopping HTTP server")
 
 		// This call is blocking and unblocks the server go routine.
-		if err := srv.Shutdown(context.Background()); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+
+		if err := srv.Shutdown(ctx); err != nil {
 			log.Error().Err(err).Msg("Graceful shutdown failed")
 		}
 	}
