@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.0.0](https://github.com/trivago/go-bootstrap/compare/v1.3.2...v2.0.0) (2026-07-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* Add net/http, Gin, and fasthttp server support ([#23](https://github.com/trivago/go-bootstrap/issues/23))
+
+### Features
+
+* Add net/http, Gin, and fasthttp server support ([#23](https://github.com/trivago/go-bootstrap/issues/23)) ([f631b1b](https://github.com/trivago/go-bootstrap/commit/f631b1b7e3e1a543b9a8759681d762acae04bc36))
+* **httpserver:** add Gin constructors for minimal migration ([f631b1b](https://github.com/trivago/go-bootstrap/commit/f631b1b7e3e1a543b9a8759681d762acae04bc36))
+
+
+### Bug Fixes
+
+* **httpserver:** bound Listen graceful shutdown to 30s ([6ce0aef](https://github.com/trivago/go-bootstrap/commit/6ce0aefe19fb75c95f2fc58b15269ddb276607c9))
+* **httpserver:** resolve clientip via X-Forwarded-For then X-Real-IP ([514b46d](https://github.com/trivago/go-bootstrap/commit/514b46d9f8659f3379ea1fe7aff3eef0d7f0ce0f))
+* **httpserver:** use exact case-sensitive DisableAccessLogFor matching ([6d0291e](https://github.com/trivago/go-bootstrap/commit/6d0291ea44eec5408241cb779af2dff16ee78268))
+
+
+### Miscellaneous
+
+* **deps:** bump versions ([ad318a4](https://github.com/trivago/go-bootstrap/commit/ad318a4207694b934d7558c818ba172f7b5acbc6))
+* **deps:** update Go dependencies and add fasthttp ([f631b1b](https://github.com/trivago/go-bootstrap/commit/f631b1b7e3e1a543b9a8759681d762acae04bc36))
+* **docs:** document server usage and migration paths ([f631b1b](https://github.com/trivago/go-bootstrap/commit/f631b1b7e3e1a543b9a8759681d762acae04bc36))
+* **httpserver:** add server and framework integration tests ([f631b1b](https://github.com/trivago/go-bootstrap/commit/f631b1b7e3e1a543b9a8759681d762acae04bc36))
+* **httpserver:** replace magic ports and cert cache duration with named constants ([d5d3ce2](https://github.com/trivago/go-bootstrap/commit/d5d3ce20972a30da7ba7982d0a3393a5735b3e70))
+
 ## [1.3.2](https://github.com/trivago/go-bootstrap/compare/v1.3.1...v1.3.2) (2026-01-29)
 
 
