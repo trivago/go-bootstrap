@@ -2,7 +2,7 @@ package httpserver
 
 import (
 	"fmt"
-	"strings"
+	"slices"
 	"sync"
 	"time"
 
@@ -37,13 +37,9 @@ func syncLogThresholds() {
 }
 
 // shouldSkipAccessLog reports whether path is excluded from access logging.
+// The match is exact and case-sensitive.
 func shouldSkipAccessLog(ignorePaths []string, path string) bool {
-	for _, ignored := range ignorePaths {
-		if strings.EqualFold(path, ignored) {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(ignorePaths, path)
 }
 
 // writeAccessLog emits a structured access log entry for one request.
