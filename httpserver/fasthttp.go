@@ -120,7 +120,11 @@ func accessLogFastHTTP(ignorePaths []string, next fasthttp.RequestHandler) fasth
 			string(ctx.Path()),
 			ctx.Response.StatusCode(),
 			string(ctx.Method()),
-			ctx.RemoteIP().String(),
+			resolveClientIP(
+				ctx.RemoteIP().String(),
+				string(ctx.Request.Header.Peek(forwardedForHeader)),
+				string(ctx.Request.Header.Peek(realIPHeader)),
+			),
 			time.Since(started),
 			"",
 		)

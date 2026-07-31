@@ -145,6 +145,9 @@ func newGinZeroLogLogger(ignorePaths []string) gin.HandlerFunc {
 	return gin.LoggerWithConfig(gin.LoggerConfig{
 		Output: logging.NullWriter{}, // output is done through the formatter
 		Formatter: func(params gin.LogFormatterParams) string {
+			// Gin already resolves ClientIP from X-Forwarded-For, then
+			// X-Real-IP, then the peer address — the same contract as
+			// resolveClientIP used by the net/http and fasthttp servers.
 			writeAccessLog(
 				ignorePaths,
 				params.Path,

@@ -2,13 +2,24 @@ package httpserver
 
 import (
 	"fmt"
+	"net"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	jww "github.com/spf13/jwalterweatherman" // See https://github.com/spf13/viper/issues/1152
+)
+
+const (
+	// forwardedForHeader is the HTTP header used by proxies to convey the
+	// original client address chain.
+	forwardedForHeader = "X-Forwarded-For"
+	// realIPHeader is the HTTP header used by some proxies to convey the
+	// original client address.
+	realIPHeader = "X-Real-IP"
 )
 
 // logThresholdsOnce ensures jwalterweatherman is aligned once per process.
@@ -40,6 +51,30 @@ func syncLogThresholds() {
 // The match is exact and case-sensitive.
 func shouldSkipAccessLog(ignorePaths []string, path string) bool {
 	return slices.Contains(ignorePaths, path)
+}
+
+// resolveClientIP returns the client IP for an access log entry. Proxy
+// headers take precedence over the peer address, mirroring
+// gin.Context.ClientIP with Gin's default trusted proxies. Both headers are
+// client controlled, so a deployment without a header-stripping proxy can
+// see spoofed values.
+func resolveClientIP(peerAddr, forwardedFor, realIP string) string {
+	if trimmed := strings.TrimSpace(forwardedFor); len(trimmed) > 0 {
+		leftmost := strings.TrimSpace(strings.Split(trimmed, ",")[0])
+		if len(leftmost) > 0 {
+			return leftmost
+		}
+	}
+
+	if trimmed := strings.TrimSpace(realIP); len(trimmed) > 0 {
+		return trimmed
+	}
+
+	host, _, err := net.SplitHostPort(peerAddr)
+	if err != nil {
+		return peerAddr
+	}
+	return host
 }
 
 // writeAccessLog emits a structured access log entry for one request.

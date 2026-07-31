@@ -163,7 +163,11 @@ func accessLogHTTP(ignorePaths []string, next http.Handler) http.Handler {
 			request.URL.Path,
 			recorder.status,
 			request.Method,
-			request.RemoteAddr,
+			resolveClientIP(
+				request.RemoteAddr,
+				request.Header.Get(forwardedForHeader),
+				request.Header.Get(realIPHeader),
+			),
 			time.Since(started),
 			"",
 		)
