@@ -14,6 +14,15 @@ import (
 )
 
 const (
+	// defaultHTTPPort is the listen port used when no port is configured
+	// and TLS is disabled.
+	defaultHTTPPort = 8080
+	// defaultHTTPSPort is the listen port used when no port is configured
+	// and TLS is enabled.
+	defaultHTTPSPort = 8443
+	// defaultCertCacheDuration is how long a TLS certificate stays cached
+	// before it is reloaded from disk.
+	defaultCertCacheDuration = 7 * 24 * time.Hour
 	// shutdownTimeout bounds the graceful shutdown triggered by Listen.
 	shutdownTimeout = 30 * time.Second
 )
@@ -113,9 +122,9 @@ func resolvePort(config Config) int {
 		return config.Port
 	}
 	if len(config.PathTLSCert) > 0 || len(config.PathTLSKey) > 0 {
-		return 8443
+		return defaultHTTPSPort
 	}
-	return 8080
+	return defaultHTTPPort
 }
 
 // resolveAddr returns the listen address for the configured port.
@@ -130,7 +139,7 @@ func buildTLSConfig(config Config) (*tls.Config, error) {
 		return nil, nil
 	}
 
-	reloadDuration := time.Hour * 24 * 7 // 7 days
+	reloadDuration := defaultCertCacheDuration
 	if config.CertCacheDuration > 0 {
 		reloadDuration = config.CertCacheDuration
 	}
