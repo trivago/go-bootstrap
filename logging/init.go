@@ -24,19 +24,19 @@ func init() {
 	zerolog.LevelFieldName = "severity"
 }
 
-// Write of DebugWriter log the output as error
+// Write logs the output of the standard library logger as an error.
 func (w ErrorLogWriter) Write(p []byte) (n int, err error) {
 	log.Error().Msg(string(p))
 	return len(p), nil
 }
 
-// Write of DebugWriter log the output as debug
+// Write logs the output of the standard library logger as debug.
 func (w DebugLogWriter) Write(p []byte) (n int, err error) {
 	log.Debug().Msg(string(p))
 	return len(p), nil
 }
 
-// Write of NullWriter drops the output
+// Write discards the output of the standard library logger.
 func (w NullWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }

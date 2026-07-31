@@ -14,12 +14,22 @@ import (
 // fileBasedCert is a certificate handler that is reloading the certificate from
 // disk if certCacheDuration has passed.
 type fileBasedCert struct {
-	mutex             *sync.Mutex
-	certFile          string
-	keyFile           string
-	lastRefresh       time.Time
+	// certGuard protects cert and lastRefresh during concurrent reads and
+	// reloads.
+	certGuard *sync.Mutex
+	// certFile is the path to the TLS certificate file on disk.
+	certFile string
+	// keyFile is the path to the TLS private key file on disk.
+	keyFile string
+	// lastRefresh is the time of the last successful certificate load or
+	// cache check.
+	lastRefresh time.Time
+	// certCacheDuration is how long a loaded certificate stays cached
+	// before it is considered for reload from disk.
 	certCacheDuration time.Duration
-	cert              *tls.Certificate
+	// cert is the currently cached TLS certificate, or nil when none is
+	// loaded yet.
+	cert *tls.Certificate
 }
 
 // newFileBasedCert creates a new certificate handler that is reloading the
@@ -30,15 +40,15 @@ func newFileBasedCert(certFile, keyFile string, certCacheDuration time.Duration)
 		keyFile:           keyFile,
 		lastRefresh:       time.Now(),
 		certCacheDuration: certCacheDuration,
-		mutex:             &sync.Mutex{},
+		certGuard:         &sync.Mutex{},
 	}
 }
 
 // GetCertificate returns a certificate from the cache, or loads it from disk if
 // it is not cached yet or certCacheDuration has passed.
 func (c *fileBasedCert) GetCertificate() (*tls.Certificate, error) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.certGuard.Lock()
+	defer c.certGuard.Unlock()
 	now := time.Now()
 
 	reload := func() (*tls.Certificate, error) {
@@ -90,7 +100,7 @@ func (c *fileBasedCert) GetCertificate() (*tls.Certificate, error) {
 		// refresh. This is a simple check that only compares the modification
 		// time of the file.
 		if fileInfo, err := os.Stat(c.certFile); err == nil && fileInfo.ModTime().After(c.lastRefresh) {
-			log.Warn().Msg("TLS certificate file has been modifed since last refresh.")
+			log.Warn().Msg("TLS certificate file has been modified since last refresh.")
 			return reload()
 		}
 
